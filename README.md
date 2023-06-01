@@ -31,7 +31,8 @@ The ASPECT input files provided in this repository correspond to commit a1f0aa5 
 https://github.com/EstherHeck/aspect/tree/fastscape_update_again
 
 This branch is built on commit 84d40e7 of the ASPECT main version,
-which can be found at https://github.com/geodynamics/aspect.
+which can be found at https://github.com/geodynamics/aspect. A copy of a1f0aa5 can be found in the
+folder /src.
 
 ## Additional ASPECT plugins
 For the initial model conditions, we used the ASPECT plugins in the folder /plugins. 
