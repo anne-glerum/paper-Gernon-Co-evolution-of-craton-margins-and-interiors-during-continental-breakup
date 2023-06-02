@@ -2,7 +2,7 @@
 
 This repository provides the input file, ASPECT installation details and additional ASPECT plugins used for the paper
 
-*Kimberlite ascent by rift-driven disruption of cratonic mantle keels*
+*Rift-induced disruption of cratonic keels drives kimberlite volcanism*
 
 by
 
@@ -20,6 +20,8 @@ Keir, D.
 Spencer, C. J.
 Merdith, A. S.
 Glerum, A.
+
+in Nature (https://doi.org/10.1038/s41586-023-06193-3).
 
 # Documentation
 The numerical simulations presented in this paper were run with the geodynamics code ASPECT (https://aspect.geodynamics.org/).
@@ -44,4 +46,4 @@ The ASPECT input file can be found in the folder /prms.
 
 ## Installation details
 ASPECT was built using the underlying library deal.II 10.0.0-pre (master, 18a3861)
-on the German HLRN cluster Lise with the following specifications:
+on the German HLRN cluster Lise.
