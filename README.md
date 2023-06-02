@@ -1,24 +1,22 @@
-# paper-Gernon-Kimberlite-ascent-by-rift-driven-disruption
-
 This repository provides the input file, ASPECT installation details and additional ASPECT plugins used for the paper
 
 *Rift-induced disruption of cratonic keels drives kimberlite volcanism*
 
 by
 
-Gernon, T. M. 
-Jones, S. M.
-Brune, S.
-Hincks, T. K.
-Palmer, M. R.
-Schumacher, J. C.
-Primiceri, R. M.
-Field, M.
-Griffin, W. L. 
-O'Reilly, S. Y.
-Keir, D.
-Spencer, C. J.
-Merdith, A. S.
+Gernon, T. M.,
+Jones, S. M.,
+Brune, S.,
+Hincks, T. K.,
+Palmer, M. R.,
+Schumacher, J. C.,
+Primiceri, R. M.,
+Field, M.,
+Griffin, W. L., 
+O'Reilly, S. Y.,
+Keir, D.,
+Spencer, C. J.,
+Merdith, A. S., and
 Glerum, A.
 
 in Nature (https://doi.org/10.1038/s41586-023-06193-3).
