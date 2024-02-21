@@ -1,0 +1,318 @@
+set Additional shared libraries            = /home/projects/bbp00039/fastscape_build_files/additional_plugins/lith_plugin/release_10dev-fastscape-adpect-4-mai/libriftplugin_d10.so
+
+set Resume computation			= auto
+
+set Dimension                              = 2
+set End time                               = 200e6
+set Use years in output instead of seconds = true
+set CFL number                             = 0.4
+set Maximum time step			   = 10e3
+
+set Adiabatic surface temperature          = 1573
+set Pressure normalization                 = no
+set Output directory                       = output
+
+set Nonlinear solver scheme                = single Advection, iterated Stokes
+set Max nonlinear iterations               = 30
+set Nonlinear solver tolerance             = 1e-4
+set Max nonlinear iterations in pre-refinement      = 0
+
+# Solver parameters
+subsection Solver parameters
+  subsection Stokes solver parameters
+    set Number of cheap Stokes solver steps = 1000
+    set Linear solver tolerance             = 1e-7
+    set GMRES solver restart length         = 50
+    set Use full A block as preconditioner  = true
+  end
+  subsection Newton solver parameters
+    set Maximum linear Stokes solver tolerance   = 1e-2
+    set Use Eisenstat Walker method for Picard iterations = true
+  end
+end
+
+subsection Geometry model
+  set Model name = box
+
+  subsection Box
+    set X extent = 2000e3
+    set Y extent = 300e3
+    set Box origin X coordinate = -500e3
+    set X repetitions = 200
+    set Y repetitions = 30
+  end
+
+  subsection Initial topography model
+    set Model name = lithosphere with rift
+  end
+end
+    
+# Take the minimum of the continental geotherm
+# and the adiabat with 'Adiabatic surface temperature'
+subsection Initial temperature model
+  set List of model names = lithosphere with rift, adiabatic
+  set List of model operators = add, minimum
+  subsection Lithosphere with rift
+    set LAB isotherm temperature = 1623.
+    set Surface temperature = 273.
+    # Whether or not to prescribe the LAB depth up to a
+    # certain depth (in area below LAB)
+    # or use adiabat everywhere
+    set Use temperature compensation depth = true
+    set Temperature compensation depth = 160e3
+  end
+  subsection Adiabatic
+    # A reference profile of the compositional fields
+    # where x represents depth
+    # Attention: make sure it is the same as in "subsection Adiabatic conditions model" below
+    subsection Function
+       set Function expression           = 0; \
+                                           0; \
+                                           0; \
+					   0; \
+                                           if(x<25e3,1,0); \
+                                           if(x>=25e3&x<40e3,1,0); \
+                                           if(x>=40e3&x<160e3,1,0); \
+					   0
+    end
+    set Age top boundary layer        = 0
+    set Age bottom boundary layer     = 0
+  end
+end
+
+subsection Compositional fields
+  set Number of fields = 8
+  set Names of fields = plastic_strain, viscous_strain, sediment_1, sediment_2, upper, lower, mantle_L, meta
+end 
+
+subsection Initial composition model
+  set List of model names = lithosphere with rift, rift, function
+  subsection Lithosphere with rift
+    # Choose whether polygons and polylines are blended. It 'false', polygon layer thicknesses override polyline thinning
+    set Blend polygons and rifts                       = true
+    set Standard deviation of Gaussian rift geometry   = 30e3
+    # These factors define how much thinner the inherited domain thicknesses are than the undisturbed layer thicknesses 
+    # example: 0.1 inherited domain will be 10% thinner that the undisturbed domain
+    # (mantleL_orig-mantleL_thin)/mantleL_orig=(80-60)/80=0.25
+    # order:                                             upper, lower, mantle_L
+    set Amplitude of Gaussian rift geometry            =   0  ,   0  ,   0
+    # Syntax: LineSegmentA;\
+    #         LineSegmentB
+    # Syntax: where LineSegment is point1_x,point1_y>point2_x,point2_y
+    set Rift axis line segments                        = -100e3
+    # Reference thicknesses
+    set Layer thicknesses                              = 20e3, 15e3, 125e3
+    
+    # Thicknesses in the additional polygon area. No effects when they equal 'Layer thicknesses'.
+    # No scaling factor, only absolute values.
+    # Syntax: Point1;\
+    #         Point2
+    # Syntax: where Point is point_x,point_y
+    # order:                                             upper, lower, mantle_L
+    set Lithospheric polygon layer thicknesses         =  25e3, 15e3 , 100e3
+    # Syntax:                                            point_x, point_y
+    set Lithospheric polygons                          =  150e3  > 300e3
+    
+    # lateral transition to reference thickness
+    set Half width of polygon smoothing                = 100e3 
+  end
+  
+  # Inherited noise 
+  subsection Rift
+    set Standard deviation of Gaussian noise amplitude distribution 	= 200e3    
+    set Maximum amplitude of Gaussian noise amplitude distribution 	    = 0.5
+    set Random number generator seed                                    = 2
+	set Depth around which Gaussian noise is smoothed out               = 50e3      
+	set Halfwidth with which Gaussian noise is smoothed out in depth    = 10e3         
+    # The rift polygon specified in cartesian surface coordinates (x and y)
+    set Rift axis line segments                                         = 225e3
+    # The resolution of the table that holds the noise values
+    # Bilinear interpolation between these values is performed when necessary
+    set Grid intervals for noise X or radius                            = 3200
+    set Grid intervals for noise Y or longitude                          = 480
+  end
+  
+  subsection Function
+    set Variable names = x,y
+    set Function expression           = 0; \
+                                           0; \
+                                           0; \
+					   0; \
+					   0; \
+					   0; \
+					   0; \
+					   if(x>500e3 & (y<140e3 & y>110e3),1,0)
+  end
+end
+
+subsection Boundary composition model
+  set Model name = initial composition
+  set Fixed composition boundary indicators = bottom
+end
+
+subsection Boundary temperature model
+  set List of model names = initial temperature, box
+  set List of model operators = add, minimum
+  set Fixed temperature boundary indicators   = bottom, top 
+  subsection Box
+    set Top temperature    =  273
+    set Bottom temperature = 5000 	# Unrealistically high, so that it is always taken from initial temperature plugin
+  end
+end
+
+
+subsection Mesh deformation                                      
+  set Mesh deformation boundary indicators = top : free surface, top: diffusion
+  set Additional tangential mesh velocity boundary indicators = left, right
+  set Surface stabilization theta = 0.5
+  
+  subsection Free surface
+    set Surface velocity projection = normal
+  end
+  
+  subsection Diffusion
+    # The diffusivity
+    set Hillslope transport coefficient = 1.e-7
+  end
+end
+
+subsection Formulation
+  set Formulation          = custom
+  # incompressible
+  set Mass conservation    = ask material model
+  # use reference density in the temperature equation
+  set Temperature equation = reference density profile
+end
+
+subsection Boundary velocity model
+  set Prescribed velocity boundary indicators = left x: function, right x: function, bottom y: function
+  subsection Function
+    set Coordinate system   = cartesian
+    set Variable names      = x,y,t
+    set Function constants  = tswitch1=29e6, tswitch2=31e6, mm=0.001, yr=1, outflow1=0, outflow2=10, Z=300e3, X=2000e3         	 
+    # Pull Left Only
+    set Function expression = if( t<tswitch1 , if(x<100e3, -outflow1*mm/yr, 0) , if( t<tswitch2 , if(x<100e3, - ( (outflow2-outflow1)/(tswitch2-tswitch1)*(t-tswitch1)+outflow1 ) *mm/yr, 0) , if(x<100e3, -outflow2*mm/yr, 0) ) ); \
+                                              if( t<tswitch1 ,           (outflow1*Z)/X*mm/yr       , if( t<tswitch2 ,          (( (outflow2-outflow1)/(tswitch2-tswitch1)*(t-tswitch1)+outflow1 )*Z)/X*mm/yr          , (outflow2*Z)/X*mm/yr ) )
+  end
+end
+
+subsection Gravity model
+  set Model name = vertical
+
+  subsection Vertical
+    set Magnitude = 9.81
+  end
+end
+
+
+subsection Material model
+  set Model name = visco plastic
+
+  subsection Visco Plastic
+
+    # Reference temperature and viscosity
+    set Reference temperature = 293
+    set Reference viscosity = 1e22
+    
+    # The minimum strain-rate helps limit large viscosities values that arise
+    # as the strain-rate approaches zero.
+    # The reference strain-rate is used on the first non-linear iteration
+    # of the first time step when the velocity has not been determined yet. 
+    set Minimum strain rate = 1.e-25
+    set Reference strain rate = 1.e-16
+
+    # Limit the viscosity with minimum and maximum values
+    set Minimum viscosity = 1e19
+    set Maximum viscosity = 1e24
+
+    # Thermal diffusivity is adjusted to match thermal conductivities
+    # assumed in assigning the initial geotherm
+    set Thermal diffusivities = 8.333333333333333e-07, 8.333333333333333e-07, 8.333333333333333e-07 , 7.2751e-07, 7.2751e-07, 7.71604938271605e-07, 7.309941520467837e-07, 8.384146341463415e-07, 8.333333333333333e-07
+    set Heat capacities       =       1200.
+    set Densities             =        3300.         ,        1000.         ,        1000.          , 2520.,    2520.,     2700.        ,        2850.          ,       3280. ,       3300.
+    set Thermal expansivities =        3.0e-5        ,        3.0e-5        ,        3.0e-5         , 3.7e-5,   3.7e-5,      2.7e-5       ,        2.7e-5         ,      3.0e-5 ,      3.0e-5
+
+    # Harmonic viscosity averaging
+    set Viscosity averaging scheme = harmonic
+
+    # Choose to have the viscosity (pre-yield) follow a dislocation
+    # diffusion or composite flow law.  
+    set Viscous flow law = composite
+
+    set Prefactors for dislocation creep          = 2.12e-15     ,      1e-20      ,      1e-20        , 8.57e-28 , 8.57e-28 ,  8.57e-28 ,   7.13e-18   ,  6.52e-16,  2.12e-15
+    set Stress exponents for dislocation creep    =      3.5     ,      1.0        ,       1.0         ,4.0   ,  4.0   ,    4.0   ,      3.0     ,      3.5,       3.5
+    set Activation energies for dislocation creep =   480.e3     ,     530.e3      ,      530.e3       , 223.e3   , 223.e3   ,   223.e3   ,   345.e3     ,   530.e3 ,   480.e3
+    set Activation volumes for dislocation creep  =   11.e-6     ,     18.e-6      ,      18.e-6       ,    0.   ,   0.   ,    0.   ,    38.e-6    ,   18.e-6, 11.e-6
+    # Diffusion creep                 																																									(wet)
+    set Prefactors for diffusion creep          =     1.5e-9    ,     2.25e-9     ,      2.25e-9      ,  5.97e-19 , 5.97e-19 , 5.97e-19 ,   2.99e-25   ,  2.25e-9,  1.5e-9 
+    #set Stress exponents for diffusion creep    =     1.0
+    set Activation energies for diffusion creep =    335.e3      ,     375.e3      ,      375.e3       ,  223.e3   , 223.e3   ,223.e3   ,   159.e3     ,   375.e3,   335.e3
+    set Activation volumes for diffusion creep  =     4.e-6      ,     6.e-6       ,      6.e-6        ,    0.   ,  0.   ,    0.   ,   38.e-6     ,   6.e-6 ,   4.e-6
+    set Grain size                               =    1e-3
+    set Grain size exponents for diffusion creep =      0.       ,      0.         ,       0.          ,     2    ,    2    ,   2    ,       3      ,     0 ,     0
+    # Plasticity parameters
+    set Angles of internal friction =   26.56
+    set Cohesions                   = 5.e6
+  
+    # Strain weakening parameters
+    set Strain weakening mechanism  = plastic weakening with plastic strain and viscous weakening with viscous strain
+    set Start plasticity strain weakening intervals = 0.0
+    set End plasticity strain weakening intervals = 1.0
+    set Cohesion strain weakening factors = 1.0
+    set Friction strain weakening factors = 0.25
+    
+    #set Use viscous strain weakening = true
+    set Start prefactor strain weakening intervals = 0.0
+    set End prefactor strain weakening intervals = 1.0
+    # the resulting strain-dependent factor is multiplied to the viscous viscosity (i.e. weakening if it is < 1)
+    set Prefactor strain weakening factors       =     1.0       ,   1.0           ,        1.0        ,   0.25    ,   0.25    ,   0.25    ,     0.25      ,    0.25,    1.0
+	
+  end
+end
+
+subsection Mesh refinement
+  set Initial global refinement                = 2
+  set Initial adaptive refinement              = 0
+  set Time steps between mesh refinement       = 0
+  set Strategy                                 =  minimum refinement function
+
+end
+
+subsection Heating model
+  set List of model names = compositional heating, adiabatic heating
+  subsection Compositional heating
+    set Use compositional field for heat production averaging =   0         ,      0          ,         0         ,   1     ,1     ,   1     ,      1       ,     1 ,     1
+    set Compositional heating values                          =   0         ,      0          ,         0         ,  1.2e-6  ,  1.2e-6  ,  1.0e-6  ,    0.1e-6    ,     0 ,     0
+  end
+end
+
+subsection Adiabatic conditions model
+  subsection Compute profile
+    set Composition reference profile = function
+    # Attention: make sure it is the same as in "subsection Initial temperature model" above
+    set Function expression           = 0; \
+					0; \
+					0; \
+					0; \
+                                        if(x<25e3,1,0); \
+                                        if(x>=25e3&x<40e3,1,0); \
+                                        if(x>=40e3&x<160e3,1,0); \
+					0
+  end
+end
+
+subsection Postprocess
+  set List of postprocessors = velocity statistics, basic statistics, temperature statistics, heat flux statistics, visualization, mass flux statistics, composition statistics, topography, material statistics, volume statistics
+  subsection Visualization
+    set Interpolate output = true
+    set List of output variables      =  viscosity, heat flux map, vertical heat flux, density, strain rate, depth, named additional outputs, maximum horizontal compressive stress #, principal stress
+    set Time between graphical output = 0.5e6
+    set Point-wise stress and strain = true
+  end
+  
+end
+
+subsection Checkpointing
+    set Steps between checkpoint = 50
+end
+
