@@ -1,29 +1,22 @@
 This repository provides the input file, ASPECT installation details and additional ASPECT plugins used for the paper
 
-*Rift-induced disruption of cratonic keels drives kimberlite volcanism*
+*Co-evolution of craton margins and interiors during continental breakup*
 
 by
 
 Gernon, T. M.,
-Jones, S. M.,
-Brune, S.,
 Hincks, T. K.,
-Palmer, M. R.,
-Schumacher, J. C.,
-Primiceri, R. M.,
-Field, M.,
-Griffin, W. L., 
-O'Reilly, S. Y.,
+Brune, S.,
+Braun, J.
+Jones, S. M.,
 Keir, D.,
-Spencer, C. J.,
-Merdith, A. S., and
+Cunningham, A. and
 Glerum, A.
 
-in Nature (https://doi.org/10.1038/s41586-023-06193-3).
+currently under review in Nature.
 
 # Documentation
 The numerical simulations presented in this paper were run with the geodynamics code ASPECT (https://aspect.geodynamics.org/).
-
 
 ## ASPECT version
 The ASPECT input files provided in this repository correspond to commit a1f0aa5 of the ASPECT branch 
@@ -40,7 +33,8 @@ The file CMakeLists.txt can be used to install these plugins as shared libraries
 against your ASPECT installation.
 
 ## ASPECT input file
-The ASPECT input file can be found in the folder /prms.
+The ASPECT input files can be found in the folder /prms. The file names indicate what simulation in the paper
+they correspond to.
 
 ## Installation details
 ASPECT was built using the underlying library deal.II 10.0.0-pre (master, 18a3861)
